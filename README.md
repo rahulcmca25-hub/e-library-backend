@@ -1,213 +1,133 @@
-# E-Library Management System
+# 📚 E-Library Management System
 
-> A modular RESTful backend for managing an e-library, built with Django and Django REST Framework.
-
-The **E-Library Management System** is a backend engineering project designed around realistic library workflows rather than a simple CRUD application. It provides authenticated APIs for managing books, borrowing and returning books, borrowing history, overdue records, reviews, user dashboards, and AI-powered book summaries.
-
-The project also includes JWT authentication, OpenAPI/Swagger documentation, environment-based configuration, Django Admin support, and a domain-oriented multi-app architecture.
+> A modular, RESTful backend for a digital library built with **Django, Django REST Framework and PostgreSQL**, with JWT authentication, role-based authorization, book inventory management, borrowing workflows, reviews, an admin dashboard, and AI-powered book summaries using OpenAI.
 
 ---
 
-## Table of Contents
+## 🚀 Project Overview
 
-- [Overview](#overview)
-- [Key Features](#key-features)
-- [Architecture](#architecture)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Authentication](#authentication)
-- [Book Management](#book-management)
-- [Borrowing System](#borrowing-system)
-- [Overdue and Fine Handling](#overdue-and-fine-handling)
-- [Book Reviews](#book-reviews)
-- [AI Book Summary](#ai-book-summary)
-- [User Dashboard](#user-dashboard)
-- [API Reference](#api-reference)
-- [Typical API Workflow](#typical-api-workflow)
-- [Data Model](#data-model)
-- [Environment Configuration](#environment-configuration)
-- [Local Setup](#local-setup)
-- [API Documentation](#api-documentation)
-- [Testing](#testing)
-- [Security](#security)
-- [Design Decisions](#design-decisions)
-- [Future Improvements](#future-improvements)
-- [Author](#author)
+The **E-Library Management System** is a backend-focused library platform designed around real-world library workflows rather than only basic CRUD operations.
+
+The system provides APIs for:
+
+- User authentication and authorization
+- Role-based access control
+- Book management
+- Author and category management
+- Book search, filtering, pagination and sorting
+- Book inventory/copy tracking
+- Borrowing and returning books
+- Borrowing history
+- Overdue tracking
+- Automatic fine calculation
+- Reviews and ratings
+- Admin/Librarian dashboard statistics
+- AI-powered book summaries
+- PostgreSQL database integration
+- Swagger/OpenAPI API documentation
+
+The backend is divided into domain-specific Django applications so that each business area remains modular and maintainable.
 
 ---
 
-## Overview
-
-The system exposes a REST API through which authenticated users can interact with the library.
-
-### Core user journey
-
-```text
-                    ┌──────────────────────┐
-                    │       Client         │
-                    └──────────┬───────────┘
-                               │
-                               ▼
-                    ┌──────────────────────┐
-                    │     Django REST      │
-                    │        API           │
-                    └──────────┬───────────┘
-                               │
-          ┌────────────────────┼────────────────────┐
-          │                    │                    │
-          ▼                    ▼                    ▼
-   ┌─────────────┐      ┌─────────────┐      ┌─────────────┐
-   │    Users    │      │    Books    │      │  Borrowing  │
-   └─────────────┘      └─────────────┘      └──────┬──────┘
-                                                     │
-                                                     ▼
-                                             ┌─────────────┐
-                                             │  History /  │
-                                             │   Overdue   │
-                                             └──────┬──────┘
-                                                    │
-                                                    ▼
-                                             ┌─────────────┐
-                                             │   Return /  │
-                                             │    Fine     │
-                                             └─────────────┘
-
-                         ┌────────────────────────────┐
-                         │       Other Services       │
-                         │ Reviews • Dashboard • AI   │
-                         └────────────────────────────┘
-```
-
----
-
-## Key Features
+# ✨ Key Features
 
 | Feature | Description |
 |---|---|
-| JWT Authentication | Secure API authentication using access and refresh tokens |
-| Book Management | Create, list, retrieve, update, partially update and delete books |
-| Book Search | Search books through the API query parameter |
-| Borrowing | Authenticated users can borrow books |
-| Borrowing History | Users can retrieve their borrowing records |
-| Overdue Tracking | Dedicated endpoint for overdue borrowing records |
-| Book Return | Users can return borrowed books |
-| Fine Support | Borrowing records maintain a monetary fine field |
-| Reviews | API endpoints for retrieving and creating reviews |
-| AI Summary | Generate an AI-powered summary for a specific book |
-| Dashboard | User/library-related dashboard information |
-| API Documentation | OpenAPI schema and Swagger UI |
-| Environment Configuration | `.env` and `.env.example` based configuration |
-| Django Admin | Administrative management through Django Admin |
+| 🔐 JWT Authentication | Access/refresh token based authentication |
+| 👤 Custom User Model | Email-based authentication with a custom user model |
+| 🛡️ Role-Based Access | `MEMBER`, `LIBRARIAN`, and `ADMIN` roles |
+| 📚 Book CRUD | Create, read, update, partially update and delete books |
+| 🔎 Search | Search books using title, ISBN, author and category |
+| 🎯 Filtering | Filter by author, category and availability |
+| 📄 Pagination | Paginated book listing |
+| ↕️ Sorting | Sort by title, published date and creation date |
+| 📦 Inventory Tracking | Track total and available copies |
+| 📖 Borrowing | Borrow books with business-rule validation |
+| ⏱️ Borrow Duration | 14-day borrowing period |
+| 🚫 Borrow Limit | Maximum 3 active borrowings per user |
+| 🔁 Duplicate Protection | Prevent duplicate active borrowing of the same book |
+| 🔄 Return System | Return books and restore available copies |
+| ⚠️ Overdue Detection | Detect books whose due date has passed |
+| 💰 Fine Calculation | ₹5 per overdue day |
+| 📜 Borrowing History | View a user's borrowing records |
+| ⭐ Reviews | Create and retrieve book reviews |
+| 🔒 Review Uniqueness | One review per user per book |
+| 📊 Dashboard | Library statistics for administrators/librarians |
+| 🤖 AI Summary | Generate book summaries using OpenAI `gpt-5-mini` |
+| 🗄️ PostgreSQL | PostgreSQL database integration |
+| 📘 Swagger/OpenAPI | Interactive API documentation |
+| ⚙️ Environment Config | Secrets/configuration through `.env` |
 
 ---
 
-# Architecture
-
-The project follows Django's modular application structure, separating different business domains into independent apps.
-
-```mermaid
-flowchart TD
-    A[Client / Frontend] --> B[Django REST API]
-
-    B --> C[JWT Authentication]
-    B --> D[Books]
-    B --> E[Borrowings]
-    B --> F[Reviews]
-    B --> G[Dashboard]
-    B --> H[AI Summary]
-
-    D --> I[Django ORM]
-    E --> I
-    F --> I
-    G --> I
-
-    I --> J[(Database)]
-
-    H --> K[AI Service]
-```
-
-### Request flow
+# 🏗️ Architecture
 
 ```text
-Client
-  │
-  │ HTTP Request
-  ▼
-Django URL Router
-  │
-  ▼
-View / APIView
-  │
-  ├── Authentication / Permissions
-  │
-  ├── Serializer Validation
-  │
-  ├── Business Logic
-  │
-  └── Django ORM
-          │
-          ▼
-       Database
+                         ┌───────────────────────┐
+                         │       Client          │
+                         │  Frontend / Postman   │
+                         │      / Swagger        │
+                         └───────────┬───────────┘
+                                     │
+                                     ▼
+                         ┌───────────────────────┐
+                         │     Django REST API   │
+                         └───────────┬───────────┘
+                                     │
+          ┌──────────────────────────┼──────────────────────────┐
+          │                          │                          │
+          ▼                          ▼                          ▼
+   ┌──────────────┐          ┌──────────────┐          ┌──────────────┐
+   │ Authentication│          │    Books     │          │  Borrowings  │
+   │    & RBAC    │          │              │          │              │
+   └──────────────┘          └──────────────┘          └──────────────┘
+          │                          │                          │
+          └──────────────────────────┼──────────────────────────┘
+                                     │
+                    ┌────────────────┼────────────────┐
+                    ▼                ▼                ▼
+              ┌──────────┐    ┌───────────┐    ┌────────────┐
+              │ Reviews  │    │ Dashboard │    │ AI Summary │
+              └──────────┘    └───────────┘    └─────┬──────┘
+                                                     │
+                                                     ▼
+                                               ┌───────────┐
+                                               │  OpenAI   │
+                                               │ gpt-5-mini│
+                                               └───────────┘
+                                     │
+                                     ▼
+                              ┌─────────────┐
+                              │ Django ORM  │
+                              └──────┬──────┘
+                                     │
+                                     ▼
+                              ┌─────────────┐
+                              │ PostgreSQL  │
+                              └─────────────┘
 ```
 
-This keeps authentication, validation, API handling and persistence separated into appropriate layers.
-
 ---
 
-# Tech Stack
+# 🧩 Django Application Architecture
 
-| Layer | Technology |
-|---|---|
-| Language | Python |
-| Backend Framework | Django |
-| REST API | Django REST Framework |
-| Authentication | JWT / `djangorestframework-simplejwt` |
-| API Specification | OpenAPI 3 |
-| API Documentation | Swagger UI / DRF Spectacular |
-| ORM | Django ORM || ORM              | Django ORM |
-| Database         | PostgreSQL |
-| Configuration    | Environment variables / `.env` |
-
----
-
-# Project Structure
-
-The project is organized into domain-specific Django applications.
+The project is separated into domain-specific applications:
 
 ```text
 e-library/
 │
-├── books/
-│   ├── migrations/
-│   ├── models.py
-│   ├── serializers.py
-│   ├── views.py
-│   ├── urls.py
-│   ├── admin.py
-│   └── tests.py
+├── ai/                  # AI book-summary functionality
+├── books/               # Books, authors, categories and book APIs
+├── borrowings/          # Borrow/return/history/overdue/fine logic
+├── dashboard/           # Admin/Librarian dashboard statistics
+├── favourites/          # Favourites module
+├── notifications/       # Notification module
+├── reservations/        # Reservation module
+├── reviews/             # Book reviews
+├── users/               # Custom user model and roles
 │
-├── borrowings/
-│   ├── migrations/
-│   ├── models.py
-│   ├── serializers.py
-│   ├── views.py
-│   ├── urls.py
-│   ├── admin.py
-│   └── tests.py
-│
-├── users/
-│
-├── reviews/
-│
-├── dashboard/
-│
-├── favourites/
-│
-├── notifications/
-│
-├── reservations/
-│
-├── config/
+├── config/              # Django project configuration
 │   ├── settings.py
 │   ├── urls.py
 │   ├── asgi.py
@@ -220,41 +140,111 @@ e-library/
 └── README.md
 ```
 
-> The domain apps make it easier to maintain and extend the system as additional library functionality is added.
+---
+
+# 🛠️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Language | Python |
+| Backend Framework | Django |
+| REST API | Django REST Framework |
+| Authentication | JWT / `djangorestframework-simplejwt` |
+| Authorization | Custom DRF permission classes |
+| Database | PostgreSQL |
+| ORM | Django ORM |
+| AI | OpenAI API |
+| AI Model | `gpt-5-mini` |
+| API Schema | OpenAPI 3 |
+| API Documentation | drf-spectacular / Swagger UI |
+| Configuration | `.env` environment variables |
 
 ---
 
-# Authentication
+# 👤 Custom User System
 
-The API uses **JWT-based authentication**.
+The project uses a custom user model instead of relying only on Django's default username-based user.
 
-Two token endpoints are available:
+## Login identity
+
+Users authenticate using their **email address**.
+
+```text
+email = unique
+username = not used
+USERNAME_FIELD = email
+```
+
+This makes email the primary authentication identifier.
+
+---
+
+# 🛡️ Role-Based Access Control
+
+The system defines three roles:
+
+```text
+MEMBER
+LIBRARIAN
+ADMIN
+```
+
+## Role overview
+
+| Capability | MEMBER | LIBRARIAN | ADMIN |
+|---|:---:|:---:|:---:|
+| View books | ✅ | ✅ | ✅ |
+| Search/filter books | ✅ | ✅ | ✅ |
+| Create books | ❌ | ✅ | ✅ |
+| Update books | ❌ | ✅ | ✅ |
+| Delete books | ❌ | ❌ | ✅ |
+| Access dashboard | ❌ | ✅ | ✅ |
+
+Custom permission classes are used to enforce role-specific operations.
+
+This prevents a normal library member from performing administrative book-management operations.
+
+---
+
+# 🔐 JWT Authentication
+
+The API uses JWT authentication with access and refresh tokens.
+
+## Authentication endpoints
 
 | Method | Endpoint | Purpose |
 |---|---|---|
-| POST | `/api/auth/token/` | Obtain access and refresh tokens |
-| POST | `/api/auth/token/refresh/` | Obtain a new access token using a refresh token |
+| `POST` | `/api/auth/token/` | Obtain access and refresh tokens |
+| `POST` | `/api/auth/token/refresh/` | Refresh an access token |
 
 ## Authentication flow
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant A as Auth API
-    participant P as Protected API
-
-    C->>A: POST /api/auth/token/
-    A-->>C: access + refresh JWT
-
-    C->>P: Request + Bearer access token
-    P->>P: Validate JWT
-    P-->>C: Protected response
-
-    C->>A: POST /api/auth/token/refresh/
-    A-->>C: New access token
+```text
+User Credentials
+      │
+      ▼
+POST /api/auth/token/
+      │
+      ▼
+┌───────────────────────┐
+│ Access Token          │
+│ Refresh Token         │
+└───────────┬───────────┘
+            │
+            ▼
+Authorization: Bearer <access-token>
+            │
+            ▼
+Protected API Endpoint
+            │
+            ▼
+JWT Validation
+            │
+            ▼
+API Response
 ```
 
-### Example: obtain JWT
+## Example
 
 ```http
 POST /api/auth/token/
@@ -277,79 +267,176 @@ Example response:
 }
 ```
 
-Use the access token for protected endpoints:
+Use the access token:
 
 ```http
 Authorization: Bearer <access-token>
 ```
 
+---
 
-# Book Management
+# 📚 Book Management
 
 Books are the central entity of the library system.
 
-The API supports the standard book management operations:
+The book domain includes:
+
+- Book
+- Author
+- Category
+- Inventory/copy tracking
+
+## Book fields
+
+The Book model contains:
+
+| Field | Purpose |
+|---|---|
+| `title` | Book title |
+| `isbn` | ISBN identifier |
+| `description` | Book description |
+| `author` | Associated author |
+| `category` | Associated category |
+| `total_copies` | Total number of copies |
+| `available_copies` | Currently available copies |
+| `published_date` | Publication date |
+| `created_at` | Creation timestamp |
+| `updated_at` | Last update timestamp |
+
+---
+
+# 📖 Book CRUD API
 
 | Method | Endpoint | Purpose |
 |---|---|---|
-| GET | `/api/` | List/search books |
-| POST | `/api/` | Create a book |
-| GET | `/api/{id}/` | Retrieve a specific book |
-| PUT | `/api/{id}/` | Replace a book |
-| PATCH | `/api/{id}/` | Partially update a book |
-| DELETE | `/api/{id}/` | Delete a book |
+| `GET` | `/api/` | List books |
+| `POST` | `/api/` | Create a book |
+| `GET` | `/api/{id}/` | Retrieve a book |
+| `PUT` | `/api/{id}/` | Replace a book |
+| `PATCH` | `/api/{id}/` | Partially update a book |
+| `DELETE` | `/api/{id}/` | Delete a book |
+
+Book creation/update/deletion is protected through role-based permissions.
+
+---
+
+# 🔎 Search, Filtering, Pagination & Sorting
+
+The book listing API supports more than simple retrieval.
 
 ## Search
 
-Book search is available using the `search` query parameter.
+Search can be performed using:
+
+```http
+GET /api/?search=python
+```
+
+The implemented search covers book information including:
+
+- title
+- ISBN
+- author
+- category
+
+## Author filter
+
+```http
+GET /api/?author=<author-id>
+```
+
+## Category filter
+
+```http
+GET /api/?category=<category-id>
+```
+
+## Availability filter
+
+```http
+GET /api/?available=true
+```
+
+## Pagination
 
 Example:
 
 ```http
-GET /api/?search=Rahul
+GET /api/?page=1&limit=10
 ```
 
-This allows clients to retrieve books matching the implemented search behavior.
+## Sorting
+
+Examples:
+
+```http
+GET /api/?ordering=title
+```
+
+```http
+GET /api/?ordering=-title
+```
+
+```http
+GET /api/?ordering=published_date
+```
+
+```http
+GET /api/?ordering=-created_at
+```
+
+Supported sorting includes book title, publication date and creation date.
 
 ---
 
-# Borrowing System
+# 📦 Book Inventory
 
-Borrowing is implemented as a separate domain through the `borrowings` application.
+Each book maintains:
 
-A borrowing is represented by a `BorrowRecord`.
+```text
+total_copies
+available_copies
+```
 
-## BorrowRecord
+This allows the system to track actual inventory rather than using only a boolean `is_borrowed` flag.
 
-The implemented record contains:
+### Borrow
+
+```text
+available_copies -= 1
+```
+
+### Return
+
+```text
+available_copies += 1
+```
+
+This inventory relationship is integrated into the borrowing workflow.
+
+---
+
+# 📖 Borrowing System
+
+Borrowing is implemented as a dedicated business domain.
+
+Each borrowing is represented by a `BorrowRecord`.
+
+## BorrowRecord fields
 
 | Field | Purpose |
 |---|---|
-| `user` | User associated with the borrowing |
-| `book` | Book being borrowed |
-| `borrowed_at` | Timestamp when borrowing was created |
-| `due_date` | Expected return date/time |
-| `returned_at` | Actual return timestamp, when returned |
-| `status` | Current borrowing state |
-| `fine` | Fine amount associated with the borrowing |
-| `created_at` | Record creation timestamp |
-| `updated_at` | Last update timestamp |
+| `user` | User who borrowed the book |
+| `book` | Borrowed book |
+| `borrowed_at` | Borrowing timestamp |
+| `due_date` | Due date/time |
+| `returned_at` | Return timestamp |
+| `status` | Borrowing state |
+| `fine` | Fine amount |
+| `created_at` | Record creation time |
+| `updated_at` | Last update time |
 
-### Status values
-
-```text
-BORROWED
-   │
-   │ due date passes
-   ▼
-OVERDUE
-   │
-   │ book returned
-   ▼
-RETURNED
-```
-
-The model defines the following status choices:
+## Status values
 
 ```text
 BORROWED
@@ -359,84 +446,104 @@ OVERDUE
 
 ---
 
-## Borrow Workflow
+# ⏱️ Borrowing Rules
 
-Endpoint:
+The borrowing system includes real business constraints.
 
-```http
-POST /api/borrowings/borrow/
+### Maximum active borrowings
+
+```text
+3 books per user
 ```
 
-High-level flow:
+A user cannot have more than **3 active borrowings**.
 
-```mermaid
-flowchart TD
-    A[Authenticated User] --> B[Borrow Request]
-    B --> C[Borrow API]
-    C --> D[Validate Request]
-    D --> E[Create BorrowRecord]
-    E --> F[Set Borrowing Information]
-    F --> G[Return Borrowing Response]
+### Borrow duration
+
+```text
+14 days
 ```
 
-The exact validation and business rules are determined by the current implementation.
+The default borrowing period is 14 days.
+
+### Availability validation
+
+A book can only be borrowed when:
+
+```text
+available_copies > 0
+```
+
+### Duplicate active borrowing
+
+A user cannot borrow the same book again while they already have an active borrowing for it.
 
 ---
 
-# Borrowing History
+# 🔄 Borrowing Workflow
 
-Endpoint:
-
-```http
-GET /api/borrowings/history/
+```text
+                 Authenticated User
+                         │
+                         ▼
+                 Borrow Request
+                         │
+                         ▼
+               ┌─────────────────┐
+               │ Validate User   │
+               │ & Book          │
+               └────────┬────────┘
+                        │
+          ┌─────────────┼─────────────┐
+          │             │             │
+          ▼             ▼             ▼
+     Availability   Max 3 Limit   Duplicate Check
+          │             │             │
+          └─────────────┼─────────────┘
+                        │
+                        ▼
+                 Create BorrowRecord
+                        │
+                        ▼
+             available_copies -= 1
+                        │
+                        ▼
+                  Borrowed Book
 ```
-
-This endpoint provides the authenticated user's borrowing history.
-
-Depending on the serializer response, borrowing information can include:
-
-- Book
-- Borrowed timestamp
-- Due date
-- Returned timestamp
-- Status
-- Fine
-
-The API uses the project's serializer as the source of truth for the exact response structure.
 
 ---
 
-# Overdue and Fine Handling
+# 🔒 Transaction & Concurrency Safety
 
-Endpoint:
+The borrowing and return operations use database transactions and row-level locking.
 
-```http
-GET /api/borrowings/overdue/
-```
-
-The `BorrowRecord` model contains an `is_overdue` property.
-
-The implemented condition is:
+The implementation uses:
 
 ```python
-return (
-    self.status == self.Status.BORROWED
-    and timezone.now() > self.due_date
-)
+transaction.atomic()
 ```
 
-Therefore, an active borrowing is considered overdue when:
+and:
 
-1. Its status is `BORROWED`
-2. The current time has passed `due_date`
+```python
+select_for_update()
+```
 
-### Important distinction
+This helps protect book availability from race conditions when multiple requests attempt to borrow or return copies concurrently.
 
-`is_overdue` is a property that evaluates whether a borrowing has passed its due date. It should not automatically be interpreted as an automatic database status transition unless the current business logic explicitly performs that transition.
+Conceptually:
+
+```text
+Request A ──┐
+            ├──> Database Row Lock ──> Safe Update
+Request B ──┘
+```
+
+This is an important backend design decision because book inventory is shared mutable state.
 
 ---
 
-# Returning a Book
+# 🔁 Return Book
 
 Endpoint:
 
@@ -444,121 +551,164 @@ Endpoint:
 POST /api/borrowings/return/{id}/
 ```
 
-The return workflow operates on a borrowing record.
+The return workflow:
 
-Relevant fields include:
-
-- `returned_at`
-- `status`
-- `fine`
-
-Typical lifecycle:
-
-```mermaid
-flowchart LR
-    A[BORROWED] --> B{Due date passed?}
-    B -->|No| A
-    B -->|Yes| C[Overdue condition]
-    C --> D[Return request]
-    A --> D
-    D --> E[RETURNED]
+```text
+Borrowed Book
+     │
+     ▼
+Return Request
+     │
+     ▼
+Check Borrowing
+     │
+     ▼
+Calculate Overdue/Fine
+     │
+     ▼
+Set returned_at
+     │
+     ▼
+Set status = RETURNED
+     │
+     ▼
+available_copies += 1
 ```
-
-The exact return-time fine calculation and any book availability update are determined by the implementation.
 
 ---
 
-# Fine Management
+# ⚠️ Overdue Tracking
 
-Each borrowing record contains a decimal fine field:
+Endpoint:
+
+```http
+GET /api/borrowings/overdue/
+```
+
+A borrowing becomes overdue when its due date has passed while the borrowing is still active.
+
+The model also exposes an `is_overdue` property based on:
 
 ```python
-fine = models.DecimalField(
-    max_digits=10,
-    decimal_places=2,
-    default=0
-)
+status == BORROWED
+and timezone.now() > due_date
 ```
 
-This provides a dedicated monetary value for fines.
+This provides a clear distinction between:
 
-> The README intentionally does not assume a particular daily-fine formula. The actual return/business logic is the source of truth for how the value is calculated or updated.
+```text
+BORROWED
+    │
+    │ due date passes
+    ▼
+OVERDUE condition
+    │
+    │ returned
+    ▼
+RETURNED
+```
 
 ---
 
-# Book Reviews
+# 💰 Fine Calculation
 
-The project includes a `reviews` application.
+The borrowing system uses:
 
-Available endpoints:
+```text
+FINE_PER_DAY = ₹5.00
+```
+
+When a book is returned after its due date, overdue days are calculated and the fine is based on:
+
+```text
+Fine = Overdue Days × ₹5
+```
+
+Example:
+
+| Overdue Days | Fine |
+|---:|---:|
+| 0 | ₹0 |
+| 1 | ₹5 |
+| 3 | ₹15 |
+| 7 | ₹35 |
+| 10 | ₹50 |
+
+The fine is stored as a decimal value in the borrowing record.
+
+---
+
+# 📜 Borrowing History
+
+Endpoint:
+
+```http
+GET /api/borrowings/history/
+```
+
+The history endpoint returns borrowing records belonging to the authenticated user.
+
+A borrowing record can contain:
+
+- Book
+- Borrowed date
+- Due date
+- Return date
+- Status
+- Fine
+
+The history is scoped to the current authenticated user.
+
+---
+
+# ⭐ Reviews
+
+The project includes a dedicated reviews module.
+
+## Review fields
+
+| Field | Description |
+|---|---|
+| `user` | Reviewer |
+| `book` | Reviewed book |
+| `rating` | Book rating |
+| `comment` | Review text |
+| `created_at` | Creation timestamp |
+| `updated_at` | Last update timestamp |
+
+## API
 
 | Method | Endpoint | Purpose |
 |---|---|---|
-| GET | `/api/reviews/` | Retrieve reviews |
-| POST | `/api/reviews/` | Create a review |
+| `GET` | `/api/reviews/` | Retrieve reviews |
+| `POST` | `/api/reviews/` | Create a review |
 
-The exact review fields, validation rules and user/book relationships are defined by the corresponding model, serializer and view implementation.
+Reviews can be filtered by book.
 
----
-
-# AI Book Summary
-
-The project includes an AI-powered book summary endpoint.
+Example:
 
 ```http
-POST /api/{id}/summary/
+GET /api/reviews/?book=<book-id>
 ```
 
-## High-level workflow
+## Duplicate review protection
 
-```mermaid
-flowchart TD
-    A[Authenticated Client] --> B[POST summary endpoint]
-    B --> C[Retrieve Book]
-    C --> D[Prepare Summary Input]
-    D --> E[AI Service]
-    E --> F[Generated Summary]
-    F --> G[JSON API Response]
-```
+A user can have only one review for a particular book.
 
-### Request lifecycle
+Conceptually:
 
 ```text
-1. Client authenticates
-        ↓
-2. Client requests summary for a book
-        ↓
-3. Backend identifies the requested book
-        ↓
-4. Backend prepares the information used for summarization
-        ↓
-5. AI service generates the summary
-        ↓
-6. Backend returns the generated result
+(User, Book)
+     │
+     ▼
+Unique Review
 ```
 
-The exact AI provider, model and configuration are intentionally not hard-coded in this README; they should be taken from the project's current environment configuration and implementation.
-
-### Example
-
-```http
-POST /api/1/summary/
-Authorization: Bearer <access-token>
-```
-
-Example response shape:
-
-```json
-{
-  "summary": "Generated summary..."
-}
-```
-
-> The exact response fields should be verified against the current serializer/view implementation.
+This is enforced using a database-level uniqueness constraint.
 
 ---
 
-# User Dashboard
+# 📊 Dashboard
 
 Endpoint:
 
@@ -566,201 +716,391 @@ Endpoint:
 GET /api/dashboard/
 ```
 
-The dashboard provides user/library-related information through a dedicated API endpoint.
+The dashboard is intended for **LIBRARIAN and ADMIN** users.
 
-This keeps dashboard aggregation separate from the core book and borrowing APIs.
+Regular members do not have access to the administrative dashboard.
+
+## Dashboard statistics
+
+The dashboard provides statistics including:
+
+| Metric | Description |
+|---|---|
+| `total_users` | Total registered users |
+| `total_books` | Total books |
+| `total_copies` | Total physical copies |
+| `available_copies` | Currently available copies |
+| `active_borrowings` | Active borrowing records |
+| `returned_books` | Returned borrowing records |
+| `overdue_books` | Overdue borrowing records |
+| `total_fines` | Total fine amount |
+
+This gives library staff a centralized view of the system.
 
 ---
 
-# API Reference
+# 🤖 AI-Powered Book Summary
+
+AI summarization is one of the main features of the assignment.
+
+## Endpoint
+
+```http
+POST /api/{id}/summary/
+```
+
+## AI provider
+
+```text
+OpenAI
+Model: gpt-5-mini
+```
+
+The backend prepares book information including:
+
+- Title
+- Description
+- Author
+- Category
+
+and sends the information to the AI model to generate a book summary.
+
+---
+
+## AI Workflow
+
+```text
+              Client
+                │
+                │ POST /api/{id}/summary/
+                ▼
+        ┌──────────────────┐
+        │   Book Endpoint   │
+        └────────┬─────────┘
+                 │
+                 ▼
+          Retrieve Book
+                 │
+                 ▼
+       Prepare Book Context
+       ┌─────────┼─────────┐
+       │         │         │
+     Title  Description  Author
+                 │
+                 ▼
+             Category
+                 │
+                 ▼
+        ┌─────────────────┐
+        │  OpenAI API     │
+        │   gpt-5-mini    │
+        └────────┬────────┘
+                 │
+                 ▼
+        Generated Summary
+                 │
+                 ▼
+            JSON Response
+```
+
+## Example request
+
+```http
+POST /api/1/summary/
+Authorization: Bearer <access-token>
+```
+
+Example response:
+
+```json
+{
+  "book_id": 1,
+  "title": "Example Book",
+  "summary": "Generated AI summary..."
+}
+```
+
+The actual response is generated by the backend using the configured AI service.
+
+---
+
+# 🧩 Notifications
+
+The repository contains a notifications module for user-specific notifications.
+
+The notification implementation supports:
+
+- Retrieving notifications
+- Marking an individual notification as read
+- User-specific notification access
+
+The notification view scopes notification data to the authenticated user.
+
+---
+
+# 📌 Reservations
+
+The repository also contains a reservations module designed for unavailable books.
+
+The reservation logic supports:
+
+- Checking whether a book exists
+- Allowing reservation when a book is unavailable
+- Preventing duplicate waiting reservations
+- Creating reservation records
+
+This module provides the foundation for a library reservation/waiting-list workflow.
+
+---
+
+# 💾 PostgreSQL Database
+
+The application uses **PostgreSQL** as its database.
+
+Database configuration is loaded from environment variables.
+
+Typical configuration values include:
+
+```text
+DB_NAME
+DB_USER
+DB_PASSWORD
+DB_HOST
+DB_PORT
+```
+
+The Django application connects using:
+
+```text
+django.db.backends.postgresql
+```
+
+Using PostgreSQL provides a production-oriented relational database for the application's users, books, borrowing records, reviews and other entities.
+
+---
+
+# 🔗 API Reference
 
 ## Authentication
 
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| POST | `/api/auth/token/` | No | Obtain JWT access and refresh tokens |
-| POST | `/api/auth/token/refresh/` | No | Refresh an access token |
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/auth/token/` | Obtain JWT access and refresh tokens |
+| POST | `/api/auth/token/refresh/` | Refresh access token |
 
 ## Books
 
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| GET | `/api/` | Yes | List/search books |
-| POST | `/api/` | Yes | Create a book |
-| GET | `/api/{id}/` | Yes | Get a book |
-| PUT | `/api/{id}/` | Yes | Replace a book |
-| PATCH | `/api/{id}/` | Yes | Partially update a book |
-| DELETE | `/api/{id}/` | Yes | Delete a book |
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/` | List/search/filter books |
+| POST | `/api/` | Create book |
+| GET | `/api/{id}/` | Retrieve book |
+| PUT | `/api/{id}/` | Replace book |
+| PATCH | `/api/{id}/` | Partially update book |
+| DELETE | `/api/{id}/` | Delete book |
 
-## AI Summary
+## AI
 
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| POST | `/api/{id}/summary/` | Yes | Generate a summary for a book |
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/{id}/summary/` | Generate AI book summary |
 
 ## Borrowings
 
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| POST | `/api/borrowings/borrow/` | Yes | Borrow a book |
-| GET | `/api/borrowings/history/` | Yes | View borrowing history |
-| GET | `/api/borrowings/overdue/` | Yes | View overdue records |
-| POST | `/api/borrowings/return/{id}/` | Yes | Return a borrowing |
-
-## Dashboard
-
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| GET | `/api/dashboard/` | Yes | Retrieve dashboard information |
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/borrowings/borrow/` | Borrow a book |
+| GET | `/api/borrowings/history/` | View borrowing history |
+| GET | `/api/borrowings/overdue/` | View overdue borrowings |
+| POST | `/api/borrowings/return/{id}/` | Return a book |
 
 ## Reviews
 
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| GET | `/api/reviews/` | Yes | Retrieve reviews |
-| POST | `/api/reviews/` | Yes | Create a review |
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/reviews/` | Retrieve reviews |
+| POST | `/api/reviews/` | Create review |
+
+## Dashboard
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/dashboard/` | Retrieve dashboard statistics |
 
 ---
 
-# Example API Workflow
+# 🧪 Example End-to-End Workflow
 
-A realistic end-to-end interaction looks like this:
+A typical user journey can look like this:
 
 ```text
-┌──────────────────────────┐
-│ 1. Authenticate          │
-│ POST /auth/token/        │
-└────────────┬─────────────┘
-             │
-             ▼
-┌──────────────────────────┐
-│ 2. Receive JWT           │
-│ access + refresh         │
-└────────────┬─────────────┘
-             │
-             ▼
-┌──────────────────────────┐
-│ 3. Browse/Search Books   │
-│ GET /api/?search=...     │
-└────────────┬─────────────┘
-             │
-             ▼
-┌──────────────────────────┐
-│ 4. View Book             │
-│ GET /api/{id}/           │
-└────────────┬─────────────┘
-             │
-             ├──────────────────────────┐
-             ▼                          ▼
-┌──────────────────────────┐   ┌──────────────────────────┐
-│ 5. Borrow                │   │ AI Summary               │
-│ POST /borrowings/borrow/ │   │ POST /{id}/summary/      │
-└────────────┬─────────────┘   └──────────────────────────┘
-             │
-             ▼
-┌──────────────────────────┐
-│ 6. Track Borrowing       │
-│ history / overdue        │
-└────────────┬─────────────┘
-             │
-             ▼
-┌──────────────────────────┐
-│ 7. Return Book           │
-│ POST /return/{id}/       │
-└────────────┬─────────────┘
-             │
-             ▼
-┌──────────────────────────┐
-│ 8. Review / Dashboard    │
-└──────────────────────────┘
+1. Login
+   │
+   ▼
+2. Receive JWT
+   │
+   ▼
+3. Search / Filter Books
+   │
+   ▼
+4. View Book Details
+   │
+   ├───────────────────────┐
+   ▼                       ▼
+5. Borrow Book          AI Summary
+   │                       │
+   ▼                       ▼
+6. Track Borrowing      OpenAI
+   │                       │
+   ▼                       ▼
+7. Check History        Summary
+   │
+   ▼
+8. Due Date
+   │
+   ├── On time ──────► Return
+   │
+   └── Overdue ──────► Fine Calculation
+                           │
+                           ▼
+                         Return
+                           │
+                           ▼
+                     available_copies += 1
 ```
 
 ---
 
-# Data Model
-
-At the core of the borrowing domain:
-
-```mermaid
-erDiagram
-    USER ||--o{ BORROW_RECORD : creates
-    BOOK ||--o{ BORROW_RECORD : has
-
-    USER {
-        int id
-    }
-
-    BOOK {
-        int id
-    }
-
-    BORROW_RECORD {
-        int id
-        datetime borrowed_at
-        datetime due_date
-        datetime returned_at
-        string status
-        decimal fine
-        datetime created_at
-        datetime updated_at
-    }
-```
-
-The central relationship is:
+# 🗃️ Core Data Relationships
 
 ```text
-User
-  │
-  │ 1
-  │
-  │ N
-  ▼
-BorrowRecord
-  │
-  │ N
-  │
-  │ 1
-  ▼
-Book
+                         ┌──────────────┐
+                         │     User     │
+                         └──────┬───────┘
+                                │
+                ┌───────────────┼────────────────┐
+                │               │                │
+                ▼               ▼                ▼
+          BorrowRecord       Review        Notification
+                │               │
+                │               │
+                ▼               ▼
+             Book ◄─────────────┘
+              │
+        ┌─────┴─────┐
+        ▼           ▼
+     Author      Category
 ```
 
-This allows the system to represent multiple borrowing records for users and books over time.
+### Borrowing relationship
+
+```text
+User 1 ───────── N BorrowRecord N ───────── 1 Book
+```
+
+This allows the system to maintain a complete borrowing history over time.
 
 ---
 
-# Environment Configuration
-
-The project includes:
+# 🔄 Borrowing Lifecycle
 
 ```text
-.env
+              ┌─────────────┐
+              │   BORROWED  │
+              └──────┬──────┘
+                     │
+                     │ due date passed
+                     ▼
+              ┌─────────────┐
+              │   OVERDUE   │
+              └──────┬──────┘
+                     │
+                     │ return
+                     ▼
+              ┌─────────────┐
+              │   RETURNED  │
+              └─────────────┘
+```
+
+The overdue condition is evaluated from the borrowing status and due date, while the return workflow updates the record and inventory.
+
+---
+
+# 📘 Swagger / OpenAPI Documentation
+
+Interactive API documentation is available through Swagger UI.
+
+### Swagger
+
+```text
+http://127.0.0.1:8000/api/docs/
+```
+
+### OpenAPI Schema
+
+```text
+http://127.0.0.1:8000/api/schema/
+```
+
+Swagger makes it easy to:
+
+- Explore endpoints
+- Inspect request/response schemas
+- Test APIs
+- Authorize using JWT
+- Understand available operations
+
+---
+
+# ⚙️ Environment Configuration
+
+The project uses environment variables for sensitive configuration.
+
+The repository includes:
+
+```text
 .env.example
 ```
 
-Use `.env.example` as the configuration template and keep the real `.env` file outside version control.
-
-Example workflow:
+Create your local `.env` from the example:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-Then populate the required values.
+Then configure the required values.
 
-> Use the exact variable names already present in `.env.example`. Do not commit real secrets.
+Typical configuration includes:
+
+```text
+DJANGO_SECRET_KEY
+DEBUG
+DATABASE_URL / PostgreSQL configuration
+OPENAI_API_KEY
+```
+
+Use the exact variable names provided by the project's `.env.example`.
+
+### Never commit
+
+```text
+.env
+```
+
+Real passwords, API keys, JWT tokens and secret keys should never be committed to the repository.
 
 ---
 
-# Local Setup
+# 🚀 Local Setup
 
-## 1. Clone the repository
+## 1. Clone
 
 ```bash
 git clone https://github.com/rahulcmca25-hub/e-library-backend.git
 cd e-library-backend
 ```
 
-## 2. Create a virtual environment
+## 2. Create virtual environment
 
 ```bash
 python -m venv venv
@@ -778,417 +1118,303 @@ venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
 
-## 4. Configure environment variables
+## 4. Configure environment
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-Fill in the required values from `.env.example`.
+Add your PostgreSQL and AI configuration.
 
-## 5. Apply migrations
+## 5. Run migrations
 
 ```bash
 python manage.py migrate
 ```
 
-## 6. Create an admin user
+## 6. Create superuser
 
 ```bash
 python manage.py createsuperuser
 ```
 
-## 7. Start the development server
+## 7. Start server
 
 ```bash
 python manage.py runserver
 ```
 
-The development server will normally be available at:
+Server:
 
 ```text
 http://127.0.0.1:8000/
 ```
 
----
-
-# API Documentation
-
-The project exposes interactive API documentation.
-
-### Swagger UI
+Swagger:
 
 ```text
 http://127.0.0.1:8000/api/docs/
 ```
 
-### OpenAPI Schema
+Schema:
 
 ```text
 http://127.0.0.1:8000/api/schema/
 ```
 
-Swagger is particularly useful for:
-
-- discovering available endpoints
-- viewing request parameters
-- testing API operations
-- understanding authentication requirements
-- inspecting API responses
-
 ---
 
-# Testing
+# 🧪 Testing
 
-Django tests can be executed with:
+Django tests can be executed using:
 
 ```bash
 python manage.py test
 ```
 
-The repository contains test modules inside the Django applications.
+The APIs were also manually exercised during development through the API documentation/testing workflow.
 
-For a production-ready project, test coverage can be expanded around:
+Important areas for API verification include:
 
-- authentication
-- permissions
-- book CRUD
-- search
-- borrowing validation
-- returning books
-- overdue handling
-- fine calculation
-- reviews
-- dashboard aggregation
-- AI-service failure scenarios
+- JWT authentication
+- Book CRUD
+- Search and filters
+- Borrowing
+- Borrowing limits
+- Book availability
+- Return flow
+- Overdue detection
+- Fine calculation
+- Reviews
+- Dashboard permissions
+- AI summary
 
 ---
 
-# Security
+# 🛡️ Security
 
-Security considerations implemented/used by the project include:
+The project includes several security-oriented mechanisms.
 
-### JWT Authentication
+### JWT authentication
 
-Protected APIs require a valid JWT access token.
+Protected APIs require:
 
 ```http
 Authorization: Bearer <access-token>
 ```
 
-### Environment-based secrets
+### Role-based permissions
 
-Sensitive configuration should live in `.env` rather than source code.
+Different user roles receive different capabilities.
 
-### Git protection
+### User-specific data access
 
-The real `.env` file should remain excluded through `.gitignore`.
+Borrowing history and notifications are scoped to the authenticated user.
 
-### Token handling
+### Environment secrets
 
-JWT tokens should never be committed to GitHub or embedded in README examples.
+Sensitive values are kept in environment variables.
 
-### API permissions
+### Database transactions
 
-Protected API views use authentication/permission mechanisms such as `IsAuthenticated`.
-
----
-
-# Error Handling
-
-The API follows standard HTTP response semantics where applicable.
-
-Common categories include:
-
-| Status | Meaning |
-|---|---|
-| `200 OK` | Successful request |
-| `201 Created` | Resource successfully created |
-| `400 Bad Request` | Invalid request/data |
-| `401 Unauthorized` | Missing or invalid authentication |
-| `404 Not Found` | Requested resource does not exist |
-
-One authentication error exposed by the API is:
-
-```json
-{
-  "detail": "Authentication credentials were not provided."
-}
-```
-
-The exact response body depends on the endpoint and validation path.
+Borrowing/return operations use atomic transactions and row-level locking to reduce concurrency problems around book inventory.
 
 ---
 
-# Design Decisions
+# 🧠 Important Backend Design Decisions
 
-## 1. Domain-based Django apps
+## 1. Domain separation
 
-Instead of putting all functionality into one large application, the system separates domains such as:
+Each major business area is separated into its own Django application.
 
-```text
-books
-borrowings
-reviews
-users
-dashboard
-...
-```
+This improves:
 
-This makes the codebase easier to understand and extend.
+- maintainability
+- readability
+- scalability
+- separation of concerns
 
-## 2. Django REST Framework
+## 2. Custom user model
 
-DRF provides:
+Email is used as the authentication identity instead of depending on Django's default username flow.
 
-- serializers
-- API views
-- authentication
-- permissions
-- request/response handling
-- API-friendly validation
+## 3. Role-based authorization
 
-## 3. JWT authentication
+Library members, librarians and administrators have different responsibilities.
 
-JWT provides a stateless authentication mechanism suitable for REST APIs.
+## 4. Inventory-aware borrowing
 
-The access/refresh model also allows short-lived access tokens to be renewed without requiring the user to authenticate again every time.
+The system tracks actual copy counts instead of only using a borrowed/not-borrowed flag.
 
-## 4. Dedicated borrowing domain
+## 5. Transactional borrowing
 
-Borrowing is separated from books because borrowing contains its own business state:
+`transaction.atomic()` and `select_for_update()` are used around inventory-sensitive operations.
 
-```text
-borrowed_at
-due_date
-returned_at
-status
-fine
-```
+## 6. Dedicated AI endpoint
 
-This is more representative of a real library system than simply storing an `is_borrowed` flag on a book.
+AI summarization is exposed independently from normal CRUD operations.
 
-## 5. Dedicated AI endpoint
+## 7. PostgreSQL
 
-AI summarization is exposed as a dedicated endpoint:
+PostgreSQL is used as the relational database for the application.
 
-```text
-POST /api/{id}/summary/
-```
+## 8. OpenAPI documentation
 
-This keeps AI-related processing separate from standard book CRUD operations.
-
-## 6. OpenAPI documentation
-
-Swagger/OpenAPI makes the backend easier to inspect, test and integrate with a frontend client.
+Swagger/OpenAPI makes the API easier to test and integrate with a frontend.
 
 ---
 
-# Example: Search for a Book
+# 📈 Future Improvements
 
-```http
-GET /api/?search=Rahul
-Authorization: Bearer <access-token>
-```
-
-Conceptually:
-
-```text
-Client
-  │
-  │ GET /api/?search=Rahul
-  ▼
-Book API
-  │
-  ▼
-Search / Query Logic
-  │
-  ▼
-Book Serializer
-  │
-  ▼
-JSON Response
-```
-
----
-
-# Example: Borrow a Book
-
-```http
-POST /api/borrowings/borrow/
-Authorization: Bearer <access-token>
-Content-Type: application/json
-```
-
-The exact request body should be taken from the borrowing serializer/API implementation.
-
-Conceptual workflow:
-
-```text
-Authenticated User
-        │
-        ▼
-Borrow Request
-        │
-        ▼
-Validation
-        │
-        ▼
-BorrowRecord
-        │
-        ├── user
-        ├── book
-        ├── borrowed_at
-        ├── due_date
-        ├── status
-        └── fine
-```
-
----
-
-# Example: Generate an AI Summary
-
-```http
-POST /api/1/summary/
-Authorization: Bearer <access-token>
-```
-
-Conceptual flow:
-
-```text
-Book ID
-   │
-   ▼
-Book Retrieval
-   │
-   ▼
-Summary Input
-   │
-   ▼
-AI Provider
-   │
-   ▼
-Generated Summary
-   │
-   ▼
-JSON Response
-```
-
----
-
-# API Capability Map
-
-```text
-                         E-LIBRARY API
-                              │
-       ┌──────────────────────┼──────────────────────┐
-       │                      │                      │
-       ▼                      ▼                      ▼
- Authentication            Books                Borrowings
-       │                      │                      │
-       │                 ┌────┼────┐          ┌──────┼──────┐
-       │                 │    │    │          │      │      │
-       ▼                 ▼    ▼    ▼          ▼      ▼      ▼
-    JWT Token           List Create Detail   Borrow History Overdue
-    Refresh             Update Delete Search       │
-                                                     ▼
-                                                   Return
-                                                     │
-                                                     ▼
-                                                    Fine
-
-       ┌──────────────────────┼──────────────────────┐
-       │                      │                      │
-       ▼                      ▼                      ▼
-    Reviews               Dashboard              AI Summary
-```
-
----
-
-# Future Improvements
-
-The following are potential production improvements and are **not presented as currently implemented features**:
+The following are natural next steps for evolving the project:
 
 - Redis caching
 - Celery/background jobs
-- automated overdue notifications
-- email notifications
-- reservation queue management
+- Automated overdue notifications
+- Email notifications
+- Reservation queue processing
 - API rate limiting
-- pagination
-- advanced filtering
-- full-text search
-- recommendation engine
+- Advanced full-text search
+- Recommendation engine
 - AI-powered semantic search
-- Docker
-- CI/CD
-- production deployment
-- expanded automated test coverage
-- centralized logging and monitoring
-- role-based permissions
-- audit logs
-
-These improvements would help the project scale from an assignment-level backend into a production-oriented library platform.
+- Docker containerization
+- CI/CD pipeline
+- Production deployment
+- Expanded automated test coverage
+- Centralized logging and monitoring
+- More granular role/permission policies
+- Audit logging
 
 ---
 
-# What Makes This Project More Than Basic CRUD?
-
-The project goes beyond a simple collection of CRUD endpoints by introducing domain workflows and backend concerns such as:
-
-- authenticated access
-- JWT token lifecycle
-- borrowing records
-- due dates
-- overdue detection
-- return lifecycle
-- fine representation
-- review APIs
-- dashboard aggregation
-- AI-assisted functionality
-- environment-based configuration
-- OpenAPI documentation
-- modular Django application architecture
-
-The borrowing domain in particular models a real business workflow rather than treating a book as only a database record.
-
----
-
-# Production Considerations
-
-For a production deployment, the system could be extended with:
+# 📊 Project Capability Map
 
 ```text
-                         Production Backend
-                                │
-             ┌──────────────────┼──────────────────┐
-             ▼                  ▼                  ▼
-        PostgreSQL            Redis             Celery
-             │                  │                  │
-             └──────────────────┼──────────────────┘
-                                ▼
-                         Django REST API
-                                │
-                 ┌──────────────┼──────────────┐
-                 ▼              ▼              ▼
-              Auth           Library          AI
-                 │              │              │
-                 └──────────────┼──────────────┘
-                                ▼
-                         Monitoring / Logs
+                       E-LIBRARY MANAGEMENT SYSTEM
+                                  │
+          ┌───────────────────────┼────────────────────────┐
+          │                       │                        │
+          ▼                       ▼                        ▼
+     AUTHENTICATION             BOOKS                  BORROWINGS
+          │                       │                        │
+      JWT + RBAC          CRUD + Search + Filters     Borrow
+      3 Roles             Pagination + Sorting        Return
+          │               Inventory Tracking           History
+          │                                             Overdue
+          │                                             Fine
+          │
+          ├─────────────────────────────────────────────────────┐
+          │                                                     │
+          ▼                                                     ▼
+       REVIEWS                                              DASHBOARD
+          │                                                     │
+     Rating/Comment                                   Library Statistics
+     One per user/book                                Admin/Librarian
+          │
+          └──────────────────────────┐
+                                     ▼
+                                AI SUMMARY
+                                     │
+                                     ▼
+                              OpenAI gpt-5-mini
 ```
 
-Potential production work includes asynchronous jobs, caching, rate limiting, stronger observability, CI/CD and automated integration testing.
+---
+
+# 🎯 What This Project Demonstrates
+
+This project demonstrates practical backend engineering concepts beyond simple CRUD:
+
+- REST API development
+- Django application architecture
+- Django REST Framework
+- JWT authentication
+- Role-based authorization
+- Custom user models
+- PostgreSQL integration
+- ORM-based database operations
+- Business-rule validation
+- Inventory management
+- Transaction management
+- Row-level locking
+- Overdue/fine calculation
+- API filtering and pagination
+- Database constraints
+- AI API integration
+- Swagger/OpenAPI documentation
+- Environment-based configuration
 
 ---
 
-# License
+# 🔮 Production Architecture
 
-This project was developed as a backend assignment/project submission.
+A possible production evolution of the system:
+
+```text
+                         ┌───────────────────┐
+                         │      Client       │
+                         └─────────┬─────────┘
+                                   │
+                                   ▼
+                         ┌───────────────────┐
+                         │   Django REST     │
+                         │       API         │
+                         └─────────┬─────────┘
+                                   │
+             ┌─────────────────────┼─────────────────────┐
+             │                     │                     │
+             ▼                     ▼                     ▼
+       ┌───────────┐         ┌───────────┐         ┌───────────┐
+       │PostgreSQL │         │   Redis   │         │  Celery   │
+       └───────────┘         └───────────┘         └───────────┘
+             │                     │                     │
+             │                     │                     │
+             └─────────────────────┼─────────────────────┘
+                                   ▼
+                           ┌──────────────┐
+                           │ AI / OpenAI  │
+                           └──────────────┘
+```
+
+The current project already uses PostgreSQL and OpenAI; Redis/Celery and other infrastructure shown here represent possible production extensions.
 
 ---
 
-# Author
+# 📌 API Quick Reference
+
+```text
+AUTH
+POST   /api/auth/token/
+POST   /api/auth/token/refresh/
+
+BOOKS
+GET    /api/
+POST   /api/
+GET    /api/{id}/
+PUT    /api/{id}/
+PATCH  /api/{id}/
+DELETE /api/{id}/
+
+AI
+POST   /api/{id}/summary/
+
+BORROWINGS
+POST   /api/borrowings/borrow/
+GET    /api/borrowings/history/
+GET    /api/borrowings/overdue/
+POST   /api/borrowings/return/{id}/
+
+REVIEWS
+GET    /api/reviews/
+POST   /api/reviews/
+
+DASHBOARD
+GET    /api/dashboard/
+```
+
+---
+
+# 👨‍💻 Author
 
 **Rahul Chadar**
 
@@ -1200,6 +1426,8 @@ https://github.com/rahulcmca25-hub/e-library-backend
 
 ---
 
-## Final Note
+# ⭐ Final Note
 
-This README describes the backend capabilities and API surface provided for the project. Where an implementation detail depends on the current serializer, view or environment configuration, the repository source code remains the final source of truth.
+This project was built as an end-to-end backend assignment with an intentionally open-ended scope. The implementation focuses on realistic library workflows, secure API access, business-rule validation, inventory consistency, AI integration, and maintainable Django architecture.
+
+The combination of **JWT + RBAC + PostgreSQL + transactional borrowing + inventory management + reviews + dashboard analytics + AI-powered summaries** makes the project substantially more than a basic CRUD backend.
