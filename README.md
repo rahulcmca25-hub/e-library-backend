@@ -164,10 +164,9 @@ This keeps authentication, validation, API handling and persistence separated in
 | Authentication | JWT / `djangorestframework-simplejwt` |
 | API Specification | OpenAPI 3 |
 | API Documentation | Swagger UI / DRF Spectacular |
-| ORM | Django ORM |
-| Local Database | SQLite (development configuration) |
-| Configuration | Environment variables / `.env` |
-| Development Server | Django development server |
+| ORM | Django ORM || ORM              | Django ORM |
+| Database         | PostgreSQL |
+| Configuration    | Environment variables / `.env` |
 
 ---
 
