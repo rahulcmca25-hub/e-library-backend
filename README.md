@@ -285,7 +285,6 @@ Authorization: Bearer <access-token>
 ```
 
 
-
 # Book Management
 
 Books are the central entity of the library system.
@@ -515,7 +514,7 @@ POST /api/{id}/summary/
 
 ```mermaid
 flowchart TD
-    A[Authenticated Client] --> B[POST /api/{id}/summary/]
+    A[Authenticated Client] --> B[POST summary endpoint]
     B --> C[Retrieve Book]
     C --> D[Prepare Summary Input]
     D --> E[AI Service]
