@@ -165,7 +165,7 @@ This keeps authentication, validation, API handling and persistence separated in
 | API Specification | OpenAPI 3 |
 | API Documentation | Swagger UI / DRF Spectacular |
 | ORM | Django ORM |
-| Local Database | SQLite (development configuration) |
+| Local Database | postgreSQL |
 | Configuration | Environment variables / `.env` |
 | Development Server | Django development server |
 
