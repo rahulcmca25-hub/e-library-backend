@@ -1109,7 +1109,6 @@ JSON Response
 
 The following are potential production improvements and are **not presented as currently implemented features**:
 
-- PostgreSQL for production
 - Redis caching
 - Celery/background jobs
 - automated overdue notifications
