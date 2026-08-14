@@ -284,17 +284,7 @@ Use the access token for protected endpoints:
 Authorization: Bearer <access-token>
 ```
 
-### Important
 
-Never commit the following to GitHub:
-
-- `.env`
-- JWT access/refresh tokens
-- passwords
-- API keys
-- Django secret keys
-
----
 
 # Book Management
 
